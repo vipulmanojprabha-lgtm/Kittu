@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>SPIDER APEX v6.0 · K-MAP CORE</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg-dark:#07060d;--panel-bg:rgba(18,14,28,.88);--panel-border:rgba(255,255,255,.08);--accent-red:#ff2a5f;--accent-blue:#0088ff;--accent-cyan:#00f0ff;--accent-gold:#fbbf24;--accent-green:#10b981;--accent-purple:#a855f7;--txt-main:#f8fafc;--txt-muted:#94a3b8;--font-main:'Plus Jakarta Sans',sans-serif;--font-tech:'Orbitron',monospace;--font-mono:'Space Grotesk',monospace}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font-main);color:var(--txt-main);min-height:100vh;display:flex;justify-content:center;padding:16px 12px 48px;background:var(--bg-dark);background-image:radial-gradient(circle at 12% 10%,rgba(255,42,95,.18),transparent 38%),radial-gradient(circle at 88% 15%,rgba(0,136,255,.2),transparent 42%),radial-gradient(circle at 50% 90%,rgba(168,85,247,.16),transparent 50%);background-attachment:fixed}
+#mainApp{width:100%;max-width:480px;display:flex;flex-direction:column;gap:12px;animation:fadeIn .4s ease-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.top-header,.panel{background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:18px;padding:14px 16px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 16px 36px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08);position:relative}
+.top-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(135deg,rgba(255,42,95,.14),rgba(0,136,255,.14));border:1px solid rgba(255,42,95,.35)}
+.brand-wrapper{display:flex;align-items:center;gap:8px}
+.brand-icon{font-size:20px;filter:drop-shadow(0 0 8px var(--accent-red))}
+.brand-name{font-family:var(--font-tech);font-size:15px;font-weight:900;letter-spacing:1.5px;background:linear-gradient(135deg,#fff,var(--accent-cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand-ver{font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;background:rgba(0,240,255,.15);border:1px solid rgba(0,240,255,.4);color:var(--accent-cyan)}
+.mode-toggle{display:flex;gap:4px;background:rgba(0,0,0,.5);padding:3px;border-radius:12px;border:1px solid rgba(255,255,255,.08)}
+.mode-btn{padding:6px 12px;border-radius:9px;font-family:var(--font-tech);font-size:10px;font-weight:800;background:transparent;color:var(--txt-muted);border:0;cursor:pointer;transition:all .25s ease}
+.mode-btn.active{color:#fff;background:linear-gradient(135deg,var(--accent-red),var(--accent-blue));box-shadow:0 0 14px rgba(255,42,95,.45)}
+.timer-panel{display:flex;justify-content:space-between;align-items:center;padding:12px 18px}
+.period-box small{display:block;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--txt-muted);text-transform:uppercase}
+.period-box span{font-family:var(--font-tech);font-size:15px;font-weight:800;color:#fff;letter-spacing:.5px}
+.timer-ring{position:relative;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(from -90deg,var(--accent-cyan) var(--progress,0deg),rgba(255,255,255,.08) var(--progress,0deg));box-shadow:0 0 16px rgba(0,240,255,.25);transition:background .15s ease}
+.timer-ring:before{content:'';position:absolute;inset:4px;border-radius:50%;background:#0d0b14}
+.timer-ring span{position:relative;font-family:var(--font-tech);font-size:18px;font-weight:900;color:#fff}
+.timer-ring.urgent{background:conic-gradient(from -90deg,var(--accent-red) var(--progress,0deg),rgba(255,255,255,.08) var(--progress,0deg));box-shadow:0 0 20px rgba(255,42,95,.5)}
+.timer-ring.urgent span{color:var(--accent-red)}
+.trend-strip-card{padding:12px 14px;background:linear-gradient(155deg,rgba(16,12,30,.92),rgba(8,6,16,.95))}
+.trend-strip-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:10px;font-weight:700;color:var(--txt-muted)}
+.trend-strip-header b{font-family:var(--font-tech);color:var(--accent-cyan);font-size:10.5px;letter-spacing:1px}
+.trend-strip-scroll{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}
+.trend-strip-scroll::-webkit-scrollbar{height:4px}
+.trend-strip-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:4px}
+.trend-node{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:28px}
+.trend-node .dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-tech);font-size:10px;font-weight:900;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.trend-node.B .dot{background:linear-gradient(135deg,#0284c7,#38bdf8);color:#fff;box-shadow:0 0 10px rgba(56,189,248,.45)}
+.trend-node.S .dot{background:linear-gradient(135deg,#e11d48,#f43f5e);color:#fff;box-shadow:0 0 10px rgba(244,63,94,.45)}
+.trend-node .num{font-family:var(--font-mono);font-size:9px;color:var(--txt-muted);font-weight:700}
+.trend-node.latest .dot{outline:2px solid #fff;outline-offset:1px;animation:pulseLatest 1.4s infinite}
+@keyframes pulseLatest{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.number-trick-card{border:1px solid rgba(168,85,247,.4);background:linear-gradient(155deg,rgba(28,14,46,.95),rgba(11,8,20,.98));box-shadow:0 12px 34px rgba(168,85,247,.16);text-align:center}
+.section-title{font-family:var(--font-tech);font-size:12px;font-weight:800;letter-spacing:2px;margin-bottom:8px;color:var(--accent-cyan);display:flex;align-items:center;justify-content:center;gap:6px}
+.number-trick-meta{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(0,0,0,.4);border-radius:10px;font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--txt-muted)}
+.number-trick-value{font-family:var(--font-tech);font-size:54px;font-weight:900;letter-spacing:3px;margin:10px 0 4px;line-height:1}
+.number-trick-value.BIG{color:#38bdf8;text-shadow:0 0 28px rgba(56,189,248,.65)}
+.number-trick-value.SMALL{color:#f43f5e;text-shadow:0 0 28px rgba(244,63,94,.65)}
+.signal-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:8px 0}
+.badge-item{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px;font-size:9.5px;font-weight:800;letter-spacing:.5px}
+.badge-regime{background:rgba(0,240,255,.15);border:1px solid var(--accent-cyan);color:#67e8f9;font-family:var(--font-tech)}
+.badge-safe{background:rgba(16,185,129,.15);border:1px solid var(--accent-green);color:#6ee7b7}
+.consensus-bar-wrap{margin:10px 0 6px}
+.consensus-meta{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9.5px;font-weight:700;color:var(--txt-muted);margin-bottom:4px}
+.consensus-meta .b-score{color:#38bdf8;font-weight:800}
+.consensus-meta .s-score{color:#f43f5e;font-weight:800}
+.consensus-bar{height:7px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;display:flex}
+.consensus-bar-b{height:100%;background:linear-gradient(90deg,#0284c7,#38bdf8);transition:width .35s ease}
+.consensus-bar-s{height:100%;background:linear-gradient(90deg,#f43f5e,#e11d48);transition:width .35s ease}
+.calc-steps{margin-top:10px;padding:10px 12px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-family:var(--font-mono);font-size:10px;line-height:1.6;color:#cbd5e1;text-align:left}
+.calc-steps .calc-line{margin:3px 0}
+.calc-steps strong{color:#fff}
+.calc-steps .pred{color:var(--accent-gold);font-weight:800}
+.calc-steps .agreement{color:var(--accent-green);font-weight:800}
+.status-line{font-size:10px;color:var(--txt-muted);text-align:center;margin-top:6px}
+.personal-stats-card{border:1px solid rgba(0,136,255,.25);background:linear-gradient(155deg,rgba(8,22,40,.95),rgba(9,10,24,.98))}
+.personal-stats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:10px 0 14px}
+.personal-stat{padding:8px 4px;text-align:center;border-radius:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.06);grid-column:span 2}
+.personal-stat.wide{grid-column:span 3;background:rgba(0,136,255,.08);border-color:rgba(0,136,255,.2)}
+.personal-stat small{display:block;font-size:8.5px;font-weight:700;color:var(--txt-muted);letter-spacing:.5px}
+.personal-stat b{display:block;font-family:var(--font-tech);font-size:17px;margin-top:3px}
+#personalWins{color:var(--accent-green)}#personalLosses{color:var(--accent-red)}#personalAccuracy{color:var(--accent-cyan)}#personalCurrentLevel{color:var(--accent-gold)}#personalHighestLevel{color:var(--accent-purple)}
+.clear-btn{width:100%;padding:8px;border-radius:10px;border:1px solid rgba(255,42,95,.4);background:rgba(255,42,95,.12);color:#ff9fb2;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:10px;transition:all .2s}
+.clear-btn:active{transform:scale(.98);background:rgba(255,42,95,.25)}
+.personal-history-wrap{border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden}
+.personal-history-table{width:100%;border-collapse:collapse;font-size:9.5px}
+.personal-history-table th{padding:8px 4px;background:rgba(0,0,0,.5);color:var(--txt-muted);font-weight:700;position:sticky;top:0;z-index:2}
+.personal-history-table td{padding:7px 4px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04)}
+.personal-history-table .win{color:var(--accent-green);font-weight:800}
+.personal-history-table .loss{color:var(--accent-red);font-weight:800}
+.result-B{color:#38bdf8!important;font-weight:700}.result-S{color:#f43f5e!important;font-weight:700}
+.api-status{font-size:9px;font-weight:800;text-align:center;margin-top:10px}
+.api-status.ok{color:var(--accent-green)}.api-status.bad{color:var(--accent-red)}
+</style>
+</head>
+<body>
+<div id="mainApp">
+  <div class="top-header">
+    <div class="brand-wrapper">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-name">SPIDER APEX</span>
+      <span class="brand-ver">v6.0</span>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="oneMinBtn" onclick="switchMode('1min')">1 MIN</button>
+      <button class="mode-btn" id="thirtySecBtn" onclick="switchMode('30sec')">30 SEC</button>
+    </div>
+  </div>
+
+  <div class="panel timer-panel">
+    <div class="period-box"><small>Target Period</small><span id="periodId">...</span></div>
+    <div class="timer-ring" id="timerRing"><span id="timer">--</span></div>
+  </div>
+
+  <div class="panel trend-strip-card">
+    <div class="trend-strip-header"><b>📈 LAST 20 DRAWS TREND STRIP</b><span id="trendSummary">SYNCING...</span></div>
+    <div class="trend-strip-scroll" id="trendStrip"></div>
+  </div>
+
+  <div class="panel number-trick-card">
+    <div class="section-title"><span>🔑 K-MAP ENGINE</span></div>
+    <div class="number-trick-meta">
+      <span id="numberTrickPeriod">NEXT: INITIALIZING</span>
+      <span id="numberTrickLevel">ENGINE: K-MAP</span>
+    </div>
+    <div id="numberTrickValue" class="number-trick-value BIG">BIG</div>
+    <div class="signal-badges" id="signalBadges">
+      <span class="badge-item badge-regime" id="regimeBadge">🔑 KEY-MAP</span>
+      <span class="badge-item badge-safe" id="standardBadge">⚡ K-MAP ACTIVE</span>
+    </div>
+    <div class="consensus-bar-wrap">
+      <div class="consensus-meta">
+        <span class="b-score" id="barScoreB">BIG: 50%</span>
+        <span id="barEntropy">KEY: --</span>
+        <span class="s-score" id="barScoreS">SMALL: 50%</span>
+      </div>
+      <div class="consensus-bar">
+        <div class="consensus-bar-b" id="barFillB" style="width:50%"></div>
+        <div class="consensus-bar-s" id="barFillS" style="width:50%"></div>
+      </div>
+    </div>
+    <div id="numberTrickCalc" class="calc-steps"></div>
+    <div id="numberTrickStatus" class="status-line">Period last-2 key-map logic active...</div>
+  </div>
+
+  <div class="panel personal-stats-card">
+    <div class="section-title">📊 LEVEL MATRIX & HISTORY</div>
+    <div class="personal-stats-grid">
+      <div class="personal-stat"><small>WINS</small><b id="personalWins">0</b></div>
+      <div class="personal-stat"><small>LOSSES</small><b id="personalLosses">0</b></div>
+      <div class="personal-stat"><small>ACCURACY</small><b id="personalAccuracy">—</b></div>
+      <div class="personal-stat wide"><small>CURRENT LEVEL</small><b id="personalCurrentLevel">1</b></div>
+      <div class="personal-stat wide"><small>MAX LEVEL PEAK</small><b id="personalHighestLevel">1</b></div>
+    </div>
+    <button id="clearWinLossHistoryBtn" class="clear-btn" type="button" onclick="clearWinLossHistory()">🗑️ RESET STATS & LEVEL</button>
+    <div class="personal-history-wrap">
+      <table class="personal-history-table">
+        <thead><tr><th>#</th><th>PERIOD</th><th>SIGNAL</th><th>ACTUAL</th><th>RESULT</th><th>LVL</th></tr></thead>
+        <tbody id="personalHistoryBody"><tr><td colspan="6">Waiting for predictions…</td></tr></tbody>
+      </table>
+    </div>
+    <div id="apiStatus" class="api-status">API: CONNECTING...</div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let gameMode = '1min', pollHandle = null, latestRows = [], lastProcessedIssue = null, busy = false;
+const MAX_LEVEL = Infinity;
+
+const personalStats = {
+  wins: 0, losses: 0, currentLevel: 1, highestLevel: 1,
+  history: [], pending: null, seenIssues: []
+};
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+function lg_nextIssueId(issue) {
+  const m = String(issue ?? '').match(/^(.*?)(\d+)$/);
+  if (!m) return null;
+  try { return m[1] + (BigInt(m[2]) + 1n).toString().padStart(m[2].length, '0'); } catch(e) { return null; }
+}
+
+function getUTCPeriod() {
+  const n = new Date(), y = n.getUTCFullYear(), mo = pad2(n.getUTCMonth()+1), d = pad2(n.getUTCDate()), h = n.getUTCHours(), mi = n.getUTCMinutes();
+  if (gameMode === '1min') return `${y}${mo}${d}1000${String(10001 + h*60 + mi).padStart(5,'0')}`;
+  const total = h*3600 + mi*60 + n.getUTCSeconds();
+  return `${y}${mo}${d}1000${String(50001 + Math.floor(total/30)).padStart(5,'0')}`;
+}
+
+function getTargetPeriod() { return lg_nextIssueId(lastProcessedIssue) || getUTCPeriod(); }
+
+function issueGreater(a, b) {
+  const x = String(a ?? ''), y = String(b ?? '');
+  if (/^\d+$/.test(x) && /^\d+$/.test(y)) { try { return BigInt(x) > BigInt(y); } catch(e) {} }
+  return x.localeCompare(y, undefined, { numeric: true }) > 0;
+}
+
+function updateTimerAndPeriod() {
+  const sec = new Date().getUTCSeconds(), rem = gameMode === '30sec' ? 30 - (sec % 30) : 60 - sec, total = gameMode === '30sec' ? 30 : 60;
+  const progress = Math.min(360, ((total - rem) / total) * 360);
+  $('timerRing').style.setProperty('--progress', progress + 'deg');
+  $('timerRing').classList.toggle('urgent', rem <= 8);
+  $('timer').textContent = pad2(rem);
+  const currentTarget = getTargetPeriod();
+  $('periodId').textContent = currentTarget;
+  if (!personalStats.pending || personalStats.pending.issue !== currentTarget) renderPrediction();
+}
+
+/* ==================== K-MAP LOGIC ==================== */
+const KEY_MAP = {
+  '0000':'B','0101':'B','0202':'S','0303':'S','0404':'B','0505':'S','0606':'B','0707':'B','0808':'S','0909':'S',
+  '1010':'S','1111':'B','1212':'S','1313':'S','1414':'B','1515':'S','1616':'S','1717':'S','1818':'S','1919':'B',
+  '2020':'B','2121':'S','2222':'B','2323':'S','2424':'S','2525':'S','2626':'B','2727':'B','2828':'S','2929':'S',
+  '3030':'S','3131':'S','3232':'S','3333':'S','3434':'S','3535':'B','3636':'S','3737':'S','3838':'B','3939':'S',
+  '4040':'S','4141':'S','4242':'B','4343':'B','4444':'B','4545':'B','4646':'B','4747':'S','4848':'S','4949':'B',
+  '5050':'B','5151':'S','5252':'S','5353':'S','5454':'B','5555':'S','5656':'S','5757':'S','5858':'S','5959':'B',
+  '6060':'S','6161':'S','6262':'S','6363':'S','6464':'B','6565':'S','6666':'B','6767':'S','6868':'B','6969':'S',
+  '7070':'S','7171':'S','7272':'S','7373':'B','7474':'S','7575':'B','7676':'S','7777':'S','7878':'S','7979':'S',
+  '8080':'B','8181':'B','8282':'S','8383':'B','8484':'S','8585':'S','8686':'S','8787':'B','8888':'S','8989':'B',
+  '9090':'S','9191':'S','9292':'S','9393':'S','9494':'S','9595':'B','9696':'S','9797':'B','9898':'B','9999':'S'
+};
+
+function getKeyMapVote(periodId) {
+  if (!periodId || periodId.length < 2) return null;
+  const last2 = periodId.slice(-2);
+  const key = last2 + last2;
+  const result = KEY_MAP[key];
+  if (!result) return null;
+  return {
+    value: result,
+    source: 'keyMap',
+    weight: 1,
+    key,
+    reason: `Key ${key} → ${result}`,
+    keyDisplay: key
+  };
+}
+
+function isReverseLevel(lvl) {
+  // Levels 1-3: Normal; Level 4+: Alternating (L4 Reverse, L5 Normal, L6 Reverse...)
+  return lvl >= 4 && lvl % 2 === 0;
+}
+
+function flipPred(val) {
+  return val === 'B' ? 'S' : 'B';
+}
+
+function analyzeKMap(targetIssue, level = 1) {
+  const vote = getKeyMapVote(targetIssue);
+  const rawPred = vote ? vote.value : 'B';
+  const rev = isReverseLevel(level);
+  const pred = rev ? flipPred(rawPred) : rawPred;
+  const keyDisplay = vote ? vote.keyDisplay : '--';
+  const scoreB = pred === 'B' ? 1 : 0;
+  const scoreS = pred === 'S' ? 1 : 0;
+  return {
+    pred,
+    rawPred,
+    isReverse: rev,
+    keyDisplay,
+    reason: vote ? vote.reason : 'No key match',
+    scoreB,
+    scoreS,
+    confidence: vote ? 85 : 50
+  };
+}
+
+/* ==================== RENDERERS ==================== */
+function renderTrendStrip(rows) {
+  const container = $('trendStrip');
+  if (!container) return;
+  let draws = [];
+  if (Array.isArray(rows) && rows.length > 0) draws = rows.slice(0, 20).slice().reverse();
+
+  if (draws.length === 0) {
+    $('trendSummary').textContent = 'INITIALIZING';
+    container.innerHTML = `<div style="font-size:10px;color:var(--txt-muted);padding:6px 0;">Awaiting live data...</div>`;
+    return;
+  }
+
+  const bigs = draws.filter(d => d.value === 'B').length;
+  $('trendSummary').textContent = `${draws.length} DRAWS · B:${bigs} | S:${draws.length-bigs}`;
+
+  let html = '';
+  draws.forEach((d, idx) => {
+    const isLatest = idx === draws.length - 1;
+    const num = (d.number !== undefined && d.number !== null) ? d.number : (d.value === 'B' ? '7' : '2');
+    html += `<div class="trend-node ${d.value} ${isLatest ? 'latest' : ''}"><div class="dot">${d.value}</div><div class="num">${num}</div></div>`;
+  });
+  container.innerHTML = html;
+  setTimeout(() => { container.scrollLeft = container.scrollWidth; }, 50);
+}
+
+function renderLockedPrediction(p) {
+  const finalWord = p.pred === 'B' ? 'BIG' : 'SMALL';
+  const rawWord = p.rawPred === 'B' ? 'BIG' : 'SMALL';
+  const modeTag = p.isReverse ? '🔄 REVERSE' : '⚡ NORMAL';
+
+  $('numberTrickPeriod').textContent = 'NEXT: ' + p.issue;
+  $('numberTrickLevel').textContent = `K-MAP · LVL ${p.level} · ${p.isReverse ? 'REVERSE' : 'NORMAL'}`;
+
+  $('numberTrickValue').textContent = finalWord;
+  $('numberTrickValue').className = 'number-trick-value ' + finalWord;
+
+  $('regimeBadge').textContent = `🔑 KEY ${p.keyDisplay}`;
+  $('standardBadge').textContent = modeTag;
+  $('standardBadge').style.borderColor = p.isReverse ? 'var(--accent-gold)' : 'var(--accent-green)';
+  $('standardBadge').style.color = p.isReverse ? '#fde047' : '#6ee7b7';
+
+  const bPct = Math.round(p.scoreB * 100), sPct = 100 - bPct;
+  $('barScoreB').textContent = `BIG: ${bPct}%`;
+  $('barScoreS').textContent = `SMALL: ${sPct}%`;
+  $('barEntropy').textContent = `KEY ${p.keyDisplay}`;
+  $('barFillB').style.width = `${bPct}%`;
+  $('barFillS').style.width = `${sPct}%`;
+
+  const capTxt = MAX_LEVEL === Infinity ? '∞' : MAX_LEVEL;
+  $('numberTrickStatus').textContent = `🔑 PDF+File K-Map · L${p.level}/${capTxt} (${p.isReverse ? 'REVERSE' : 'NORMAL'}) · ${p.reason}`;
+
+  $('numberTrickCalc').innerHTML = `
+    <div class="calc-line"><strong>PERIOD:</strong> ${p.issue}</div>
+    <div class="calc-line"><strong>K-MAP KEY:</strong> <span class="agreement">${p.keyDisplay}</span> (Raw: ${rawWord})</div>
+    <div class="calc-line"><strong>MODE (L${p.level}):</strong> <span style="color:${p.isReverse ? 'var(--accent-gold)' : 'var(--accent-cyan)'};font-weight:800">${p.isReverse ? 'REVERSE FLIP' : 'NORMAL'}</span></div>
+    <div class="calc-line"><strong>FINAL SIGNAL:</strong> <span class="pred">${finalWord}</span> · Level ${p.level}</div>
+  `;
+}
+
+function renderPrediction() {
+  const target = getTargetPeriod();
+  if (personalStats.pending && personalStats.pending.issue === target) {
+    renderLockedPrediction(personalStats.pending);
+    return;
+  }
+  const currentLvl = personalStats.currentLevel || 1;
+  const a = analyzeKMap(target, currentLvl);
+
+  personalStats.pending = {
+    issue: target,
+    pred: a.pred,
+    rawPred: a.rawPred,
+    isReverse: a.isReverse,
+    keyDisplay: a.keyDisplay,
+    reason: a.reason,
+    level: currentLvl,
+    scoreB: a.scoreB,
+    scoreS: a.scoreS,
+    confidence: a.confidence
+  };
+  renderLockedPrediction(personalStats.pending);
+}
+
+/* ==================== STORAGE ==================== */
+function statsKey() { return 'spider_panel_kmap_rev4_v6_0_' + gameMode; }
+
+function loadStats() {
+  try {
+    const x = JSON.parse(localStorage.getItem(statsKey()) || 'null');
+    if (x) {
+      personalStats.history = Array.isArray(x.history) ? x.history : [];
+      personalStats.seenIssues = Array.isArray(x.seenIssues) ? x.seenIssues : [];
+      personalStats.wins = personalStats.history.filter(x => x.status === 'WIN').length;
+      personalStats.losses = personalStats.history.filter(x => x.status === 'LOSS').length;
+
+      let run = 0, peak = 1;
+      for (const r of personalStats.history) {
+        if (r.status === 'LOSS') { run++; if (MAX_LEVEL !== Infinity && run >= MAX_LEVEL) run = MAX_LEVEL - 1; peak = Math.max(peak, run + 1); }
+        else if (r.status === 'WIN') { run = 0; }
+      }
+      const savedLvl = Number(x.currentLevel) || 0;
+      personalStats.currentLevel = Math.min(MAX_LEVEL, Math.max(1, savedLvl || (run + 1)));
+      personalStats.highestLevel = Math.min(MAX_LEVEL, Math.max(1, Number(x.highestLevel) || peak, personalStats.currentLevel));
+    }
+  } catch(e) {}
+  renderStats();
+}
+
+function saveStats() {
+  try {
+    localStorage.setItem(statsKey(), JSON.stringify({
+      history: personalStats.history.slice(-200),
+      seenIssues: personalStats.seenIssues.slice(-300),
+      currentLevel: personalStats.currentLevel,
+      highestLevel: personalStats.highestLevel
+    }));
+  } catch(e) {}
+}
+
+function renderStats() {
+  $('personalWins').textContent = personalStats.wins;
+  $('personalLosses').textContent = personalStats.losses;
+  const total = personalStats.wins + personalStats.losses;
+  $('personalAccuracy').textContent = total ? Math.round((personalStats.wins / total) * 100) + '%' : '—';
+  $('personalCurrentLevel').textContent = personalStats.currentLevel;
+  $('personalHighestLevel').textContent = personalStats.highestLevel;
+
+  const body = $('personalHistoryBody');
+  body.innerHTML = personalStats.history.length
+    ? personalStats.history.slice().reverse().map((r, i) => `
+      <tr>
+        <td>${personalStats.history.length - i}</td>
+        <td>${r.issue.slice(-5)}</td>
+        <td class="${r.pred === 'B' ? 'result-B' : 'result-S'}">${r.pred === 'B' ? 'BIG' : 'SMALL'}</td>
+        <td class="${r.actual === 'B' ? 'result-B' : 'result-S'}">${r.actual === 'B' ? 'BIG' : 'SMALL'} (${r.number})</td>
+        <td class="${r.status === 'WIN' ? 'win' : 'loss'}">${r.status}</td>
+        <td>L${r.level || 1}</td>
+      </tr>
+    `).join('')
+    : '<tr><td colspan="6">No resolved rounds yet</td></tr>';
+}
+
+function clearWinLossHistory() {
+  try { localStorage.removeItem(statsKey()); } catch(e) {}
+  personalStats.wins = 0; personalStats.losses = 0;
+  personalStats.currentLevel = 1; personalStats.highestLevel = 1;
+  personalStats.history = []; personalStats.seenIssues = []; personalStats.pending = null;
+  renderStats(); renderPrediction();
+}
+
+function settlePrediction(r) {
+  const issue = String(r.issue);
+  if (personalStats.seenIssues.includes(issue)) return;
+  const p = personalStats.pending;
+  if (!p || p.issue !== issue) {
+    personalStats.seenIssues.push(issue);
+    personalStats.seenIssues = personalStats.seenIssues.slice(-300);
+    saveStats();
+    return;
+  }
+
+  const win = p.pred === r.value;
+  const levelUsed = Number(p.level) || personalStats.currentLevel || 1;
+
+  personalStats.history.push({
+    issue, pred: p.pred, actual: r.value, number: r.number,
+    status: win ? 'WIN' : 'LOSS', level: levelUsed
+  });
+  personalStats.seenIssues.push(issue);
+  personalStats.seenIssues = personalStats.seenIssues.slice(-300);
+  personalStats.pending = null;
+
+  if (win) {
+    personalStats.wins += 1;
+    personalStats.currentLevel = 1;
+  } else {
+    personalStats.losses += 1;
+    personalStats.currentLevel = Math.min(MAX_LEVEL, levelUsed + 1);
+  }
+  personalStats.highestLevel = Math.min(MAX_LEVEL, Math.max(personalStats.highestLevel, personalStats.currentLevel));
+
+  saveStats(); renderStats();
+}
+
+/* ==================== API ==================== */
+const API_ENDPOINTS = {
+  '1min': [
+    '/api/lottery/WinGo/WinGo_1M/GetHistoryIssuePage.json',
+    'https://draw.ar-lottery02.com/WinGo/WinGo_1M/GetHistoryIssuePage.json',
+    'https://draw.ar-lottery03.com/WinGo/WinGo_1M/GetHistoryIssuePage.json',
+    'https://draw.ar-lottery04.com/WinGo/WinGo_1M/GetHistoryIssuePage.json',
+    'https://draw.ar-lottery05.com/WinGo/WinGo_1M/GetHistoryIssuePage.json'
+  ],
+  '30sec': [
+    '/api/lottery/WinGo/WinGo_30S/GetHistoryIssuePage.json',
+    'https://draw.ar-lottery02.com/WinGo/WinGo_30S/GetHistoryIssuePage.json',
+    'https://draw.ar-lottery03.com/WinGo/WinGo_30S/GetHistoryIssuePage.json',
+    'https://draw.ar-lottery04.com/WinGo/WinGo_30S/GetHistoryIssuePage.json',
+    'https://draw.ar-lottery05.com/WinGo/WinGo_30S/GetHistoryIssuePage.json'
+  ]
+};
+
+function extractRows(payload) {
+  const found = [], seen = new Set();
+  function walk(n, d = 0) {
+    if (!n || typeof n !== 'object' || d > 9 || seen.has(n)) return;
+    seen.add(n);
+    if (Array.isArray(n)) { n.forEach(x => walk(x, d + 1)); return; }
+    const issue = n.issueNumber ?? n.issue_number ?? n.issue ?? n.period ?? n.periodNumber ?? n.issue_no ?? n.drawId;
+    const raw = n.number ?? n.resultNumber ?? n.result_number ?? n.result ?? n.openNumber ?? n.open_number ?? n.winNumber;
+    if (issue !== undefined && raw !== undefined) {
+      const m = String(raw).match(/(?:^|\D)([0-9])(?:\D|$)/);
+      if (m) {
+        const number = +m[1];
+        found.push({ issue: String(issue), number, value: number >= 5 ? 'B' : 'S' });
+      }
+    }
+    Object.values(n).forEach(v => walk(v, d + 1));
+  }
+  walk(payload);
+  return [...new Map(found.map(x => [x.issue, x])).values()].sort((a, b) => a.issue.localeCompare(b.issue, undefined, { numeric: true }));
+}
+
+let activeEndpointIndex = 0;
+async function fetchWithFallback() {
+  const endpoints = API_ENDPOINTS[gameMode] || [];
+  for (let a = 0; a < endpoints.length; a++) {
+    const idx = (activeEndpointIndex + a) % endpoints.length;
+    try {
+      const c = new AbortController(), t = setTimeout(() => c.abort(), 4000);
+      const res = await fetch(endpoints[idx] + (endpoints[idx].includes('?') ? '&' : '?') + 'ts=' + Date.now(), { cache: 'no-store', signal: c.signal });
+      clearTimeout(t);
+      if (res.ok) {
+        const rows = extractRows(await res.json());
+        if (rows.length) { activeEndpointIndex = idx; return rows; }
+      }
+    } catch(e) {}
+  }
+  return null;
+}
+
+async function pollAPI() {
+  if (busy) return;
+  busy = true;
+  try {
+    const rows = await fetchWithFallback();
+    if (rows && rows.length) {
+      const newestFirst = rows.slice().reverse();
+      if (lastProcessedIssue === null) lastProcessedIssue = rows[rows.length - 1].issue;
+      else {
+        const fresh = rows.filter(r => issueGreater(r.issue, lastProcessedIssue));
+        for (const r of fresh) { settlePrediction(r); lastProcessedIssue = r.issue; }
+      }
+      latestRows = newestFirst;
+      $('apiStatus').textContent = 'API · K-MAP ENGINE LIVE';
+      $('apiStatus').className = 'api-status ok';
+      renderTrendStrip(latestRows); renderPrediction();
+    } else {
+      $('apiStatus').textContent = 'LOCAL SYNC ACTIVE';
+      $('apiStatus').className = 'api-status ok';
+      renderTrendStrip(latestRows); renderPrediction();
+    }
+  } catch(e) { console.error('pollAPI', e); }
+  finally { busy = false; }
+}
+
+function stopPolling() { if (pollHandle) clearInterval(pollHandle); pollHandle = null; }
+function startPolling() { pollAPI(); pollHandle = setInterval(pollAPI, 3500); }
+
+function switchMode(mode) {
+  if (mode === gameMode) return;
+  gameMode = mode;
+  latestRows = []; lastProcessedIssue = null; personalStats.pending = null;
+  loadStats();
+  $('oneMinBtn').classList.toggle('active', mode === '1min');
+  $('thirtySecBtn').classList.toggle('active', mode === '30sec');
+  renderTrendStrip(latestRows); renderPrediction();
+  stopPolling(); startPolling(); updateTimerAndPeriod();
+}
+
+loadStats();
+setInterval(updateTimerAndPeriod, 1000);
+updateTimerAndPeriod();
+renderTrendStrip(latestRows);
+renderPrediction();
+startPolling();
+</script>
+</body>
+</html>
